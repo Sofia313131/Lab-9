@@ -1,73 +1,54 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-
-app = Flask('Furniture store')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///project.db'
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///workplaces.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-
-# products = [
-#     {'prod_name': 'sofa',
-#      'price': 12000,
-#      'in_stock': False,
-#      'id': 0},
-#     {'prod_name': 'table',
-#      'price': 6000,
-#      'in_stock': True,
-#      'id': 1},
-#     {'prod_name': 'chair',
-#      'price': 8000,
-#      'in_stock': False,
-#      'id': 2},
-# ]
-
-
-class Product(db.Model):
+class Workplace(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    prod_name = db.Column(db.String(300))
-    price = db.Column(db.Integer)
-    in_stock = db.Column(db.Boolean, default=True)
+    company = db.Column(db.String(300))
+    term = db.Column(db.Integer)
 
-    def __repr__(self):
-        return f'Product{self.id}. {self.prod_name} - {self.price} rub.'
-
+    def __repr__(self) -> str:
+        return f'Workplace {self.id}: {self.company} - {self.term} months'
 
 @app.route('/')
 def main():
-    products = Product.query.all()
-    return render_template('index.html', products_list=products)
+    workplaces = Workplace.query.all()
+    total_term = sum(wp.term for wp in workplaces)
+    return render_template('index.html', workplaces=workplaces, total_term=total_term)
 
+@app.route('/api/workplaces', methods=['GET'])
+def get_workplaces():
+    workplaces = Workplace.query.all()
+    return jsonify([{'id': wp.id, 'company': wp.company, 'term': wp.term} for wp in workplaces])
 
-@app.route('/in_stock/<product_id>', methods=['PATCH'])
-def modify_product(product_id):
-    product = Product.query.get(product_id)
-    product.in_stock = request.json['in_stock']
+@app.route('/api/workplaces', methods=['POST'])
+def add_workplace():
+    data = request.get_json()
+    company = data.get('company')
+    term = int(data.get('term'))
+    workplace = Workplace(company=company, term=term)
+    db.session.add(workplace)
     db.session.commit()
-    # global products
-    # in_stock = request.json['in_stock']
-    # for product in products:
-    #     if product['id'] == product_id:
-    #         product.update({'in_stock': in_stock})
-    # return 'OK'
+    return jsonify({'id': workplace.id, 'company': workplace.company, 'term': workplace.term}), 201
 
-
-@app.route('/add', methods=['POST'])
-def add_product():
-    data = request.json
-    product = Product(**data)
-    db.session.add(product)
+@app.route('/api/workplaces/<int:id>', methods=['DELETE'])
+def delete_workplace(id):
+    workplace = Workplace.query.get_or_404(id)
+    db.session.delete(workplace)
     db.session.commit()
+    return jsonify({'message': 'Workplace deleted'})
 
-    # id_last = products[-1]['id']
-    # id_new = id_last + 1
-    # data['id'] = id_new
-    # products.append(data)
-    return 'OK'
-
-
+@app.route('/api/workplaces', methods=['DELETE'])
+def clear_workplaces():
+    Workplace.query.delete()
+    db.session.commit()
+    return jsonify({'message': 'All workplaces cleared'})
 
 if __name__ == '__main__':
     with app.app_context():

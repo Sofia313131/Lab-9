@@ -1,35 +1,56 @@
-<html>
+<!DOCTYPE html>
+<html lang="ru">
 <head>
-    <title>Best store!</title>
-    <script type="text/javascript" src="/static/update.js"></script>
-    <link href="static/store.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Опыт работы</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
-    <h1>Furniture store:</h1>
-    <h3>Add new product:</h3>
-    <form>
-        <div>
-            <input type="text" name="prod_name" id="prod_name">
-            <label for="prod_name">Product name</label>
-        </div>
-        <div>
-            <input type="number" name="price" id="price">
-            <label for="price">Price (rub.)</label>
-        </div>
-        <button onClick="addProduct()">Add</button>
-    </form>
-    <ul>
-        {% for product in products_list %}
-        <li>
-            <div>
-                <div>{{ product['prod_name'] }}</div>
-                <div>{{ product['price'] }} rub.</div>
-                <input value="{{product['id']}}" onChange="updateProd(this)" name="in_stock" type="checkbox" {% if product.in_stock %} checked {% endif %}>
-                <label for="in_stock">In stock</label>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
+  <div class="controls">
+    <button id="addBtn">Добавить</button>
+    <button id="clearBtn">Очистить всё</button>
+    <button id="refreshBtn">Обновить список</button>
+    <div class="text-box">Используйте кнопки для управления списком элементов</div>
+  </div>
+
+  <div id="grid" class="grid-container"></div>
+
+  <div class="footer">
+    <p>София Татаурова © 2025</p>
+  </div>
+
+  <div id="addModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Добавить новый элемент</h2>
+        <span class="close">×</span>
+      </div>
+      <form id="addForm">
+        <label for="company">Название компании:</label>
+        <input type="text" id="company" name="company" required>
+        <label for="term">Срок работы (месяцы):</label>
+        <input type="number" id="term" name="term" required>
+        <button type="submit">Добавить</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="clearModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Подтверждение</h2>
+        <span class="close">×</span>
+      </div>
+      <p>Вы уверены, что хотите удалить все элементы?</p>
+      <div class="confirm-buttons">
+        <button id="cancelClear">Нет</button>
+        <button id="confirmClear">Да</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/script.js"></script>
 </body>
 </html>
